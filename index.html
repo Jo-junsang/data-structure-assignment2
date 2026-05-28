@@ -1,3 +1,4 @@
+HTML
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -6,11 +7,9 @@
     <title>Weapon OOP 다형성 시각화 (비주얼 이펙트)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 연결선 스타일 */
         .v-line { width: 2px; height: 32px; background-color: #94a3b8; margin: 0 auto; }
         .v-line-dashed { width: 2px; height: 24px; border-left: 2px dashed #cbd5e1; margin: 0 auto; }
         
-        /* 시각적 애니메이션 효과들 */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px) rotate(-5deg); }
@@ -19,9 +18,12 @@
         }
         .animate-attack { animation: shake 0.4s ease-in-out; }
 
+        /* 애니메이션 체류 시간을 4초로 설정 */
         @keyframes float-up {
             0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-40px) scale(1.2); }
+            10% { opacity: 1; transform: translateY(-30px) scale(1.2); }
+            80% { opacity: 1; transform: translateY(-35px) scale(1.2); } 
+            100% { opacity: 0; transform: translateY(-50px) scale(1); }
         }
         .floating-text {
             position: absolute;
@@ -32,7 +34,7 @@
             pointer-events: none;
             z-index: 50;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            animation: float-up 1s ease-out forwards;
+            animation: float-up 4s ease-out forwards; 
             white-space: nowrap;
         }
 
@@ -43,15 +45,19 @@
         }
         .animate-enhance { animation: pulse-glow 0.8s ease-out; }
         
-        /* 카드 호버 효과 */
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: all 0.2s; }
+        
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen p-8 font-sans overflow-x-hidden">
+<body class="bg-slate-50 min-h-screen p-8 font-sans pb-16 overflow-x-hidden">
 
     <header class="text-center mb-8">
         <h1 class="text-3xl font-extrabold text-slate-800 mb-2">Dynamic OOP Visualization</h1>
-        <p class="text-slate-500">클래스 노드를 클릭하여 전체 다형성 공격을 보거나, 개별 카드를 통해 강화/공격을 진행하세요.</p>
+        <p class="text-slate-500">클래스 노드를 클릭하거나 개별 카드의 버튼을 클릭하여 다형성을 확인하세요.</p>
     </header>
 
     <div class="flex flex-col items-center w-full max-w-6xl mx-auto mt-4">
@@ -160,6 +166,26 @@
 
             </div>
         </div>
+
+        <div class="w-full max-w-4xl mt-12 bg-slate-900 rounded-xl shadow-2xl border border-slate-700 overflow-hidden z-10">
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="text-slate-400 text-xs ml-2 font-mono">Terminal History Log</span>
+                    </div>
+                    <button onclick="resetAll()" class="bg-slate-800 hover:bg-slate-700 active:bg-slate-850 text-slate-300 text-xs font-mono px-3 py-1 rounded border border-slate-600 transition-colors flex items-center gap-1">
+                        🔄 Reset Log & State
+                    </button>
+                </div>
+                <div id="console-output" class="text-green-400 font-mono text-sm h-40 flex flex-col gap-1 overflow-y-auto w-full pr-2">
+                    <div class="text-slate-500">> 시스템 대기중... 카드를 클릭하여 인터랙션을 발생시키세요.</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -170,13 +196,15 @@
                 this._name = name;
                 this._power = power;
             }
+            get name() { return this._name; }
             get power() { return this._power; }
             
             attack() {
-                return { damage: this.power, msg: "기본 타격!" };
+                return { damage: this.power, msg: "기본 타격!", log: `[Weapon] ${this.name}의 공격으로 ${this.power}의 피해를 입혔습니다.` };
             }
             enhance() {
                 this._power += 10;
+                return `[System] 강화 성공! ${this.name}의 공격력이 10 상승했습니다.`;
             }
         }
 
@@ -188,7 +216,7 @@
             get sharpness() { return this._sharpness; }
 
             attack() {
-                return { damage: this.power + this.sharpness, msg: "참격!" };
+                return { damage: this.power + this.sharpness, msg: "참격!", log: `[Sword] ${this.name}의 검을 휘두르는 공격으로 ${this.power + this.sharpness}의 피해를 입혔습니다.` };
             }
         }
 
@@ -200,24 +228,42 @@
             get tension() { return this._tension; }
 
             attack() {
-                return { damage: this.power + this.tension, msg: "관통!" };
+                return { damage: this.power + this.tension, msg: "관통!", log: `[Bow] ${this.name}의 활의 장력을 이용한 공격으로 ${this.power + this.tension}의 피해를 입혔습니다.` };
             }
         }
 
-        // 인스턴스 딕셔너리 매핑 (개별 관리를 위해)
-        const instances = {
-            'w1': new Weapon('w1', "맨손", 10),
-            'w2': new Weapon('w2', "나뭇가지", 15),
-            'w3': new Sword('w3', "기본 검", 30, 10),
-            'w4': new Sword('w4', "철 검", 50, 30),
-            'w5': new Sword('w5', "엑스칼리버", 100, 50),
-            'w6': new Bow('w6', "기본 활", 40, 10),
-            'w7': new Bow('w7', "엘프의 활", 120, 60)
-        };
+        // 인스턴스를 관리할 변수
+        let instances = {};
 
-        // --- 2. Visual Effects Logic ---
+        // 모든 무기 인스턴스를 초기 데이터 상태로 설정하는 함수
+        function initInstances() {
+            instances = {
+                'w1': new Weapon('w1', "맨손", 10),
+                'w2': new Weapon('w2', "나뭇가지", 15),
+                'w3': new Sword('w3', "기본 검", 30, 10),
+                'w4': new Sword('w4', "철 검", 50, 30),
+                'w5': new Sword('w5', "엑스칼리버", 100, 50),
+                'w6': new Bow('w6', "기본 활", 40, 10),
+                'w7': new Bow('w7', "엘프의 활", 120, 60)
+            };
+            // UI 스탯 갱신
+            Object.keys(instances).forEach(id => updateStatsUI(id));
+        }
 
-        // 플로팅 텍스트(데미지, 강화 수치 등) 띄우기
+        // --- 2. Visual & Logging Logic ---
+
+        const consoleBox = document.getElementById('console-output');
+
+        function addLog(message, colorClass = "text-green-400") {
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: "numeric", minute: "numeric", second: "numeric" });
+            const logEntry = document.createElement('div');
+            logEntry.className = colorClass;
+            logEntry.innerText = `[${time}] > ${message}`;
+            consoleBox.appendChild(logEntry);
+            
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
         function showFloatingText(cardId, text, colorClass, sizeClass = "text-xl") {
             const card = document.getElementById(`${cardId}-card`);
             const floating = document.createElement('div');
@@ -225,11 +271,9 @@
             floating.innerText = text;
             card.appendChild(floating);
 
-            // 애니메이션 끝나면 DOM에서 제거
-            setTimeout(() => { floating.remove(); }, 1000);
+            setTimeout(() => { floating.remove(); }, 4000);
         }
 
-        // UI 텍스트(상태창) 업데이트
         function updateStatsUI(id) {
             const obj = instances[id];
             const statSpan = document.getElementById(`${id}-stats`);
@@ -242,53 +286,58 @@
             }
         }
 
-        // 개별 공격 버튼 클릭 시
         function attackItem(id) {
             const obj = instances[id];
-            const result = obj.attack(); // 다형성 메서드 호출
+            const result = obj.attack(); 
             
             const card = document.getElementById(`${id}-card`);
-            
-            // 흔들림 애니메이션 실행
             card.classList.remove('animate-attack');
-            void card.offsetWidth; // DOM Reflow 트리거 (애니메이션 재시작)
+            void card.offsetWidth; 
             card.classList.add('animate-attack');
 
-            // 데미지 텍스트 띄우기
             showFloatingText(id, `💥 -${result.damage} (${result.msg})`, 'text-red-500');
+            
+            addLog(result.log, "text-red-400");
         }
 
-        // 개별 강화 버튼 클릭 시
         function enhanceItem(id) {
             const obj = instances[id];
-            obj.enhance(); // 파워 10 증가 로직
+            const logMsg = obj.enhance(); 
             
             const card = document.getElementById(`${id}-card`);
-            
-            // 빛나는 이펙트 실행
             card.classList.remove('animate-enhance');
             void card.offsetWidth;
             card.classList.add('animate-enhance');
 
-            // 강화 텍스트 띄우기 & 수치 업데이트
             showFloatingText(id, `✨ POWER UP!`, 'text-blue-500', 'text-sm');
             updateStatsUI(id);
+            
+            addLog(logMsg, "text-blue-400");
         }
 
-        // 클래스 노드 클릭 시 (해당 클래스 인스턴스 전체 공격)
         function triggerClassAttack(className) {
             let targetIds = [];
             if (className === 'Weapon') targetIds = ['w1', 'w2'];
             else if (className === 'Sword') targetIds = ['w3', 'w4', 'w5'];
             else if (className === 'Bow') targetIds = ['w6', 'w7'];
 
-            // 약간의 시차를 두고 순차적으로 공격 애니메이션 발생
+            addLog(`--- ${className} 클래스의 다형성 공격 일괄 실행 ---`, "text-yellow-400 font-bold mt-2");
+
             targetIds.forEach((id, index) => {
                 setTimeout(() => {
                     attackItem(id);
-                }, index * 150); // 0.15초 간격
+                }, index * 200); 
             });
         }
+
+        // 전체 초기화 함수 (무기 데이터 원상복구 + 터미널 로그 삭제)
+        function resetAll() {
+            initInstances(); // 무기 스탯 원복
+            consoleBox.innerHTML = `<div class="text-slate-500">> 시스템이 초기화되었습니다. 모든 무기가 강화 전 초기 상태로 돌아갑니다.</div>`;
+        }
+
+        // 최초 실행 시 인스턴스 초기화
+        initInstances();
     </script>
 </body>
 </html>
