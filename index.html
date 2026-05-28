@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weapon OOP 다형성 시각화 (비주얼 이펙트)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 연결선 스타일 */
+        .v-line { width: 2px; height: 32px; background-color: #94a3b8; margin: 0 auto; }
+        .v-line-dashed { width: 2px; height: 24px; border-left: 2px dashed #cbd5e1; margin: 0 auto; }
+        
+        /* 시각적 애니메이션 효과들 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            50% { transform: translateX(5px) rotate(5deg); }
+            75% { transform: translateX(-5px) rotate(-5deg); }
+        }
+        .animate-attack { animation: shake 0.4s ease-in-out; }
+
+        @keyframes float-up {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-40px) scale(1.2); }
+        }
+        .floating-text {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 50;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: float-up 1s ease-out forwards;
+            white-space: nowrap;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        .animate-enhance { animation: pulse-glow 0.8s ease-out; }
+        
+        /* 카드 호버 효과 */
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: all 0.2s; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-8 font-sans overflow-x-hidden">
+
+    <header class="text-center mb-8">
+        <h1 class="text-3xl font-extrabold text-slate-800 mb-2">Dynamic OOP Visualization</h1>
+        <p class="text-slate-500">클래스 노드를 클릭하여 전체 다형성 공격을 보거나, 개별 카드를 통해 강화/공격을 진행하세요.</p>
+    </header>
+
+    <div class="flex flex-col items-center w-full max-w-6xl mx-auto mt-4">
+        
+        <div class="border-2 border-dashed border-slate-400 bg-slate-100 p-4 rounded-xl w-64 text-center z-10">
+            <h2 class="font-bold text-slate-700 text-lg">WeaponADT</h2>
+            <p class="text-xs text-slate-500 mt-1">«Abstract Class»</p>
+        </div>
+
+        <div class="v-line"></div>
+
+        <div class="flex flex-col items-center w-full z-10">
+            <div class="border-2 border-purple-500 bg-purple-50 p-4 rounded-xl w-64 text-center cursor-pointer hover:bg-purple-100 transition-colors shadow-sm" onclick="triggerClassAttack('Weapon')">
+                <h2 class="font-bold text-purple-800 text-xl">Weapon (Base)</h2>
+                <div class="mt-2 text-[10px] bg-purple-200 text-purple-800 rounded px-2 py-1 inline-block">클릭 시 전체 attack() 실행</div>
+            </div>
+            
+            <div class="flex gap-4 mt-6">
+                <div id="w1-card" class="bg-white border-2 border-slate-200 rounded-xl p-4 w-32 flex flex-col items-center relative card-hover">
+                    <span class="font-bold text-slate-700">맨손</span>
+                    <span id="w1-stats" class="text-xs font-mono text-purple-600 bg-purple-50 px-2 py-1 rounded mt-1">Pow: 10</span>
+                    <div class="flex gap-1 mt-3">
+                        <button onclick="enhanceItem('w1')" class="bg-blue-500 hover:bg-blue-600 text-white text-[11px] px-2 py-1 rounded">강화</button>
+                        <button onclick="attackItem('w1')" class="bg-red-500 hover:bg-red-600 text-white text-[11px] px-2 py-1 rounded">공격</button>
+                    </div>
+                </div>
+                <div id="w2-card" class="bg-white border-2 border-slate-200 rounded-xl p-4 w-32 flex flex-col items-center relative card-hover">
+                    <span class="font-bold text-slate-700">나뭇가지</span>
+                    <span id="w2-stats" class="text-xs font-mono text-purple-600 bg-purple-50 px-2 py-1 rounded mt-1">Pow: 15</span>
+                    <div class="flex gap-1 mt-3">
+                        <button onclick="enhanceItem('w2')" class="bg-blue-500 hover:bg-blue-600 text-white text-[11px] px-2 py-1 rounded">강화</button>
+                        <button onclick="attackItem('w2')" class="bg-red-500 hover:bg-red-600 text-white text-[11px] px-2 py-1 rounded">공격</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="v-line"></div>
+
+        <div class="relative w-full max-w-4xl">
+            <div class="absolute top-0 left-1/4 right-1/4 h-[2px] bg-slate-400"></div>
+            <div class="absolute top-0 left-1/4 w-[2px] h-8 bg-slate-400"></div>
+            <div class="absolute top-0 right-1/4 w-[2px] h-8 bg-slate-400"></div>
+            
+            <div class="flex justify-between pt-8">
+                
+                <div class="w-1/2 flex flex-col items-center">
+                    <div class="border-2 border-red-500 bg-red-50 p-4 rounded-xl w-64 text-center cursor-pointer hover:bg-red-100 transition-colors shadow-sm" onclick="triggerClassAttack('Sword')">
+                        <h2 class="font-bold text-red-800 text-xl">Sword (Derived)</h2>
+                        <div class="mt-2 text-[10px] bg-red-200 text-red-800 rounded px-2 py-1 inline-block">+ sharpness (Overridden)</div>
+                    </div>
+                    
+                    <div class="flex gap-4 mt-6">
+                        <div id="w3-card" class="bg-white border-2 border-slate-200 rounded-xl p-4 w-[110px] flex flex-col items-center relative card-hover">
+                            <span class="font-bold text-slate-700 text-sm">기본 검</span>
+                            <span id="w3-stats" class="text-[10px] font-mono text-red-600 bg-red-50 px-1 py-1 rounded mt-1">P:30 S:10</span>
+                            <div class="flex gap-1 mt-3">
+                                <button onclick="enhanceItem('w3')" class="bg-blue-500 hover:bg-blue-600 text-white text-[10px] px-2 py-1 rounded">강화</button>
+                                <button onclick="attackItem('w3')" class="bg-red-500 hover:bg-red-600 text-white text-[10px] px-2 py-1 rounded">공격</button>
+                            </div>
+                        </div>
+                        <div id="w4-card" class="bg-white border-2 border-slate-200 rounded-xl p-4 w-[110px] flex flex-col items-center relative card-hover">
+                            <span class="font-bold text-slate-700 text-sm">철 검</span>
+                            <span id="w4-stats" class="text-[10px] font-mono text-red-600 bg-red-50 px-1 py-1 rounded mt-1">P:50 S:30</span>
+                            <div class="flex gap-1 mt-3">
+                                <button onclick="enhanceItem('w4')" class="bg-blue-500 hover:bg-blue-600 text-white text-[10px] px-2 py-1 rounded">강화</button>
+                                <button onclick="attackItem('w4')" class="bg-red-500 hover:bg-red-600 text-white text-[10px] px-2 py-1 rounded">공격</button>
+                            </div>
+                        </div>
+                        <div id="w5-card" class="bg-white border-2 border-slate-200 rounded-xl p-4 w-[110px] flex flex-col items-center relative card-hover">
+                            <span class="font-bold text-slate-700 text-xs">엑스칼리버</span>
+                            <span id="w5-stats" class="text-[10px] font-mono text-red-600 bg-red-50 px-1 py-1 rounded mt-1">P:100 S:50</span>
+                            <div class="flex gap-1 mt-3">
+                                <button onclick="enhanceItem('w5')" class="bg-blue-500 hover:bg-blue-600 text-white text-[10px] px-2 py-1 rounded">강화</button>
+                                <button onclick="attackItem('w5')" class="bg-red-500 hover:bg-red-600 text-white text-[10px] px-2 py-1 rounded">공격</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-1/2 flex flex-col items-center">
+                    <div class="border-2 border-green-500 bg-green-50 p-4 rounded-xl w-64 text-center cursor-pointer hover:bg-green-100 transition-colors shadow-sm" onclick="triggerClassAttack('Bow')">
+                        <h2 class="font-bold text-green-800 text-xl">Bow (Derived)</h2>
+                        <div class="mt-2 text-[10px] bg-green-200 text-green-800 rounded px-2 py-1 inline-block">+ tension (Overridden)</div>
+                    </div>
+                    
+                    <div class="flex gap-4 mt-6">
+                        <div id="w6-card" class="bg-white border-2 border-slate-200 rounded-xl p-4 w-32 flex flex-col items-center relative card-hover">
+                            <span class="font-bold text-slate-700">기본 활</span>
+                            <span id="w6-stats" class="text-[10px] font-mono text-green-600 bg-green-50 px-2 py-1 rounded mt-1">P:40 T:10</span>
+                            <div class="flex gap-1 mt-3">
+                                <button onclick="enhanceItem('w6')" class="bg-blue-500 hover:bg-blue-600 text-white text-[11px] px-2 py-1 rounded">강화</button>
+                                <button onclick="attackItem('w6')" class="bg-red-500 hover:bg-red-600 text-white text-[11px] px-2 py-1 rounded">공격</button>
+                            </div>
+                        </div>
+                        <div id="w7-card" class="bg-white border-2 border-slate-200 rounded-xl p-4 w-32 flex flex-col items-center relative card-hover">
+                            <span class="font-bold text-slate-700">엘프의 활</span>
+                            <span id="w7-stats" class="text-[10px] font-mono text-green-600 bg-green-50 px-2 py-1 rounded mt-1">P:120 T:60</span>
+                            <div class="flex gap-1 mt-3">
+                                <button onclick="enhanceItem('w7')" class="bg-blue-500 hover:bg-blue-600 text-white text-[11px] px-2 py-1 rounded">강화</button>
+                                <button onclick="attackItem('w7')" class="bg-red-500 hover:bg-red-600 text-white text-[11px] px-2 py-1 rounded">공격</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Python OOP Logic Ported to JS ---
+        class Weapon {
+            constructor(id, name, power) {
+                this.id = id;
+                this._name = name;
+                this._power = power;
+            }
+            get power() { return this._power; }
+            
+            attack() {
+                return { damage: this.power, msg: "기본 타격!" };
+            }
+            enhance() {
+                this._power += 10;
+            }
+        }
+
+        class Sword extends Weapon {
+            constructor(id, name, power, sharpness) {
+                super(id, name, power);
+                this._sharpness = sharpness;
+            }
+            get sharpness() { return this._sharpness; }
+
+            attack() {
+                return { damage: this.power + this.sharpness, msg: "참격!" };
+            }
+        }
+
+        class Bow extends Weapon {
+            constructor(id, name, power, tension) {
+                super(id, name, power);
+                this._tension = tension;
+            }
+            get tension() { return this._tension; }
+
+            attack() {
+                return { damage: this.power + this.tension, msg: "관통!" };
+            }
+        }
+
+        // 인스턴스 딕셔너리 매핑 (개별 관리를 위해)
+        const instances = {
+            'w1': new Weapon('w1', "맨손", 10),
+            'w2': new Weapon('w2', "나뭇가지", 15),
+            'w3': new Sword('w3', "기본 검", 30, 10),
+            'w4': new Sword('w4', "철 검", 50, 30),
+            'w5': new Sword('w5', "엑스칼리버", 100, 50),
+            'w6': new Bow('w6', "기본 활", 40, 10),
+            'w7': new Bow('w7', "엘프의 활", 120, 60)
+        };
+
+        // --- 2. Visual Effects Logic ---
+
+        // 플로팅 텍스트(데미지, 강화 수치 등) 띄우기
+        function showFloatingText(cardId, text, colorClass, sizeClass = "text-xl") {
+            const card = document.getElementById(`${cardId}-card`);
+            const floating = document.createElement('div');
+            floating.className = `floating-text ${colorClass} ${sizeClass}`;
+            floating.innerText = text;
+            card.appendChild(floating);
+
+            // 애니메이션 끝나면 DOM에서 제거
+            setTimeout(() => { floating.remove(); }, 1000);
+        }
+
+        // UI 텍스트(상태창) 업데이트
+        function updateStatsUI(id) {
+            const obj = instances[id];
+            const statSpan = document.getElementById(`${id}-stats`);
+            if (obj instanceof Sword) {
+                statSpan.innerText = `P:${obj.power} S:${obj.sharpness}`;
+            } else if (obj instanceof Bow) {
+                statSpan.innerText = `P:${obj.power} T:${obj.tension}`;
+            } else {
+                statSpan.innerText = `Pow: ${obj.power}`;
+            }
+        }
+
+        // 개별 공격 버튼 클릭 시
+        function attackItem(id) {
+            const obj = instances[id];
+            const result = obj.attack(); // 다형성 메서드 호출
+            
+            const card = document.getElementById(`${id}-card`);
+            
+            // 흔들림 애니메이션 실행
+            card.classList.remove('animate-attack');
+            void card.offsetWidth; // DOM Reflow 트리거 (애니메이션 재시작)
+            card.classList.add('animate-attack');
+
+            // 데미지 텍스트 띄우기
+            showFloatingText(id, `💥 -${result.damage} (${result.msg})`, 'text-red-500');
+        }
+
+        // 개별 강화 버튼 클릭 시
+        function enhanceItem(id) {
+            const obj = instances[id];
+            obj.enhance(); // 파워 10 증가 로직
+            
+            const card = document.getElementById(`${id}-card`);
+            
+            // 빛나는 이펙트 실행
+            card.classList.remove('animate-enhance');
+            void card.offsetWidth;
+            card.classList.add('animate-enhance');
+
+            // 강화 텍스트 띄우기 & 수치 업데이트
+            showFloatingText(id, `✨ POWER UP!`, 'text-blue-500', 'text-sm');
+            updateStatsUI(id);
+        }
+
+        // 클래스 노드 클릭 시 (해당 클래스 인스턴스 전체 공격)
+        function triggerClassAttack(className) {
+            let targetIds = [];
+            if (className === 'Weapon') targetIds = ['w1', 'w2'];
+            else if (className === 'Sword') targetIds = ['w3', 'w4', 'w5'];
+            else if (className === 'Bow') targetIds = ['w6', 'w7'];
+
+            // 약간의 시차를 두고 순차적으로 공격 애니메이션 발생
+            targetIds.forEach((id, index) => {
+                setTimeout(() => {
+                    attackItem(id);
+                }, index * 150); // 0.15초 간격
+            });
+        }
+    </script>
+</body>
+</html>
