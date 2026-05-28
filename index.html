@@ -4,7 +4,7 @@ HTML
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weapon OOP 다형성 시각화 (비주얼 이펙트)</title>
+    <title>무기 강화 및 공격 시스템</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .v-line { width: 2px; height: 32px; background-color: #94a3b8; margin: 0 auto; }
@@ -18,7 +18,6 @@ HTML
         }
         .animate-attack { animation: shake 0.4s ease-in-out; }
 
-        /* 애니메이션 체류 시간을 4초로 설정 */
         @keyframes float-up {
             0% { opacity: 1; transform: translateY(0) scale(1); }
             10% { opacity: 1; transform: translateY(-30px) scale(1.2); }
@@ -47,7 +46,6 @@ HTML
         
         .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: all 0.2s; }
         
-        /* 스크롤바 커스텀 */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
@@ -56,7 +54,7 @@ HTML
 <body class="bg-slate-50 min-h-screen p-8 font-sans pb-16 overflow-x-hidden">
 
     <header class="text-center mb-8">
-        <h1 class="text-3xl font-extrabold text-slate-800 mb-2">Dynamic OOP Visualization</h1>
+        <h1 class="text-3xl font-extrabold text-slate-800 mb-2">무기 강화 및 공격 시스템</h1>
         <p class="text-slate-500">클래스 노드를 클릭하거나 개별 카드의 버튼을 클릭하여 다형성을 확인하세요.</p>
     </header>
 
@@ -189,7 +187,6 @@ HTML
     </div>
 
     <script>
-        // --- 1. Python OOP Logic Ported to JS ---
         class Weapon {
             constructor(id, name, power) {
                 this.id = id;
@@ -232,10 +229,8 @@ HTML
             }
         }
 
-        // 인스턴스를 관리할 변수
         let instances = {};
 
-        // 모든 무기 인스턴스를 초기 데이터 상태로 설정하는 함수
         function initInstances() {
             instances = {
                 'w1': new Weapon('w1', "맨손", 10),
@@ -246,11 +241,8 @@ HTML
                 'w6': new Bow('w6', "기본 활", 40, 10),
                 'w7': new Bow('w7', "엘프의 활", 120, 60)
             };
-            // UI 스탯 갱신
             Object.keys(instances).forEach(id => updateStatsUI(id));
         }
-
-        // --- 2. Visual & Logging Logic ---
 
         const consoleBox = document.getElementById('console-output');
 
@@ -330,13 +322,11 @@ HTML
             });
         }
 
-        // 전체 초기화 함수 (무기 데이터 원상복구 + 터미널 로그 삭제)
         function resetAll() {
-            initInstances(); // 무기 스탯 원복
+            initInstances();
             consoleBox.innerHTML = `<div class="text-slate-500">> 시스템이 초기화되었습니다. 모든 무기가 강화 전 초기 상태로 돌아갑니다.</div>`;
         }
 
-        // 최초 실행 시 인스턴스 초기화
         initInstances();
     </script>
 </body>
